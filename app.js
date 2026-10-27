@@ -55,53 +55,35 @@ async function iniciarSesion() {
 
 // --- MOSTRAR APLICACIÓN PRINCIPAL ---
 function mostrarAppPrincipal(usuario) {
-    const loginScreen = document.getElementById("login-screen") || document.querySelector(".login-container");
-    
-    if (loginScreen) {
-        loginScreen.style.display = "none";
-    }
+    const loginScreen = document.getElementById("login-screen");
+    const appLayout = document.getElementById("app-layout") || document.querySelector(".app-layout");
 
-    const appLayout = document.getElementById("app-layout") || 
-                      document.getElementById("main-app") || 
-                      document.getElementById("app") || 
-                      document.querySelector(".app-layout") ||
-                      document.querySelector("main");
+    if (loginScreen) loginScreen.style.display = "none";
+    if (appLayout) appLayout.style.display = "flex";
 
-    if (appLayout) {
-        appLayout.style.display = "flex";
-    } else {
-        document.querySelectorAll("body > div").forEach(div => {
-            if (div.id !== "login-screen" && !div.classList.contains("login-container")) {
-                div.style.display = "block";
-            }
-        });
-    }
-
-    // Cargar la lista de usuarios en el panel maestro si existe la tabla
+    // Cargar la lista de usuarios en el panel maestro
     cargarUsuariosRegistrados();
 }
 
-// --- CAMBIO DE SECCIONES EN EL MENÚ (Robusto) ---
+// --- CAMBIO DE SECCIONES EN EL MENÚ (Respetando el CSS original) ---
 function cambiarSeccion(seccionId, btnElement) {
-    // Ocultar todas las secciones
+    // Quitar la clase active de todas las secciones
     document.querySelectorAll('.view-section').forEach(sec => {
         sec.classList.remove('active');
-        sec.style.display = 'none'; // Asegura que se oculten visualmente
     });
 
-    // Quitar la clase active de los botones del menú
+    // Quitar la clase active de todos los botones del menú lateral
     document.querySelectorAll('.nav-item, aside button, .sidebar button').forEach(item => {
         item.classList.remove('active');
     });
 
-    // Mostrar la sección seleccionada
+    // Activar la sección seleccionada
     const targetSection = document.getElementById(seccionId);
     if (targetSection) {
         targetSection.classList.add('active');
-        targetSection.style.display = 'block'; // Fuerza la visualización
     }
 
-    // Marcar el botón presionado como activo
+    // Activar el botón presionado
     if (btnElement) {
         btnElement.classList.add('active');
     }
