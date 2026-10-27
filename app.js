@@ -2,16 +2,17 @@
 const SUPABASE_URL = "https://xeuulzwumaosekpjwbyq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ER63PZLEgmRBSeHj2Ekz2w_86aShIsA";
 
-// --- GESTIÓN DE VISTAS E INTERFAZ ---
+// --- INICIO DE LA APLICACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Verificar si ya hay una sesión activa en la pestaña
+    // Verificar si ya hay una sesión activa
     const sesionActiva = sessionStorage.getItem("kurama_sesion");
     if (sesionActiva) {
-        mostrarAppPrincipal(JSON.parse(sesionActiva));
+        try {
+            mostrarAppPrincipal(JSON.parse(sesionActiva));
+        } catch (e) {
+            sessionStorage.removeItem("kurama_sesion");
+        }
     }
-    
-    // Cargar usuarios al iniciar si estamos logueados
-    cargarUsuariosRegistrados();
 });
 
 // --- INICIAR SESIÓN DESDE LA NUBE ---
@@ -21,12 +22,12 @@ async function iniciarSesion() {
     const errorMsg = document.getElementById("loginError");
 
     if (!userIn || !passIn) {
-        errorMsg.textContent = "Por favor completa todos los campos.";
+        if (errorMsg) errorMsg.textContent = "Por favor completa todos los campos.";
         return;
     }
 
     try {
-        errorMsg.textContent = "Conectando...";
+        if (errorMsg) errorMsg.textContent = "Conectando...";
         
         const response = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?usuario=eq.${encodeURIComponent(userIn)}&password=eq.${encodeURIComponent(passIn)}`, {
             method: "GET",
@@ -40,17 +41,17 @@ async function iniciarSesion() {
 
         if (data && data.length > 0) {
             const usuarioValido = data[0];
-            errorMsg.textContent = "";
+            if (errorMsg) errorMsg.textContent = "";
             
-            // Guardar sesión en el navegador actual
+            // Guardar sesión en el navegador
             sessionStorage.setItem("kurama_sesion", JSON.stringify(usuarioValido));
             mostrarAppPrincipal(usuarioValido);
         } else {
-            errorMsg.textContent = "Usuario o contraseña incorrectos.";
+            if (errorMsg) errorMsg.textContent = "Usuario o contraseña incorrectos.";
         }
     } catch (error) {
         console.error("Error de red:", error);
-        errorMsg.textContent = "Error al conectar con la base de datos.";
+        if (errorMsg) errorMsg.textContent = "Error al conectar con la base de datos.";
     }
 }
 
@@ -62,7 +63,7 @@ function mostrarAppPrincipal(usuario) {
     if (loginScreen) loginScreen.style.display = "none";
     if (appLayout) appLayout.style.display = "flex";
 
-    // Cargar usuarios en el panel maestro
+    // Cargar usuarios en el panel maestro de forma segura
     cargarUsuariosRegistrados();
 }
 
@@ -85,7 +86,7 @@ async function registrarUsuarioMaster(event) {
     const inputPass = document.getElementById("nuevoPasswordInput")?.value.trim() || "";
     const inputUser = document.getElementById("nuevoUsuarioInput")?.value.trim() || "";
 
-    // Recolectar permisos de los checkboxes
+    // Recolectar permisos de los checkboxes de forma segura
     let permisosArr = [];
     const checkboxes = document.querySelectorAll('.card input[type="checkbox"]');
     checkboxes.forEach(cb => {
@@ -125,11 +126,11 @@ async function registrarUsuarioMaster(event) {
         if (response.ok) {
             alert("¡Usuario registrado en la nube con éxito!");
             
-            // Limpiar campos del formulario
-            document.getElementById("nuevoNombreInput").value = "";
-            document.getElementById("nuevoApellidoInput").value = "";
-            document.getElementById("nuevoPasswordInput").value = "";
-            document.getElementById("nuevoUsuarioInput").value = "";
+            // Limpiar campos del formulario de forma segura
+            if(document.getElementById("nuevoNombreInput")) document.getElementById("nuevoNombreInput").value = "";
+            if(document.getElementById("nuevoApellidoInput")) document.getElementById("nuevoApellidoInput").value = "";
+            if(document.getElementById("nuevoPasswordInput")) document.getElementById("nuevoPasswordInput").value = "";
+            if(document.getElementById("nuevoUsuarioInput")) document.getElementById("nuevoUsuarioInput").value = "";
             checkboxes.forEach(cb => cb.checked = false);
 
             cargarUsuariosRegistrados();
