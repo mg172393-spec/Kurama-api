@@ -4,7 +4,6 @@ const SUPABASE_KEY = "sb_publishable_ER63PZLEgmRBSeHj2Ekz2w_86aShIsA";
 
 // --- INICIO DE LA APLICACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Verificar si ya hay una sesión activa en esta pestaña
     const sesionActiva = sessionStorage.getItem("kurama_sesion");
     if (sesionActiva) {
         try {
@@ -43,7 +42,6 @@ async function iniciarSesion() {
             const usuarioValido = data[0];
             if (errorMsg) errorMsg.textContent = "";
             
-            // Guardar sesión en el navegador
             sessionStorage.setItem("kurama_sesion", JSON.stringify(usuarioValido));
             mostrarAppPrincipal(usuarioValido);
         } else {
@@ -55,16 +53,14 @@ async function iniciarSesion() {
     }
 }
 
-// --- MOSTRAR APLICACIÓN PRINCIPAL Y ACTIVAR VISTA INICIAL ---
+// --- MOSTRAR APLICACIÓN PRINCIPAL ---
 function mostrarAppPrincipal(usuario) {
     const loginScreen = document.getElementById("login-screen") || document.querySelector(".login-container");
     
-    // Ocultar la pantalla de login
     if (loginScreen) {
         loginScreen.style.display = "none";
     }
 
-    // Buscar y mostrar el contenedor principal y el layout general
     const appLayout = document.getElementById("app-layout") || 
                       document.getElementById("main-app") || 
                       document.getElementById("app") || 
@@ -81,34 +77,34 @@ function mostrarAppPrincipal(usuario) {
         });
     }
 
-    // Asegurar que el contenedor principal del contenido o la barra lateral se desplieguen bien
-    const mainContentArea = document.querySelector(".main-content") || document.querySelector("main") || document.getElementById("main-content");
-    if (mainContentArea) {
-        mainContentArea.style.display = "block";
-    }
-
-    // --- ACTIVAR LA PRIMERA SECCIÓN DISPONIBLE POR DEFECTO ---
-    const secciones = document.querySelectorAll('.view-section');
-    if (secciones.length > 0) {
-        // Busca si hay alguna con la clase active, si no, activa la primera
-        let hayActiva = Array.from(secciones).some(sec => sec.classList.contains('active'));
-        if (!hayActiva) {
-            secciones[0].classList.add('active');
-        }
-    }
-
-    // Cargar la lista de usuarios en el panel maestro
+    // Cargar la lista de usuarios en el panel maestro si existe la tabla
     cargarUsuariosRegistrados();
 }
 
-// --- CAMBIO DE SECCIONES EN EL MENÚ ---
+// --- CAMBIO DE SECCIONES EN EL MENÚ (Robusto) ---
 function cambiarSeccion(seccionId, btnElement) {
-    document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    // Ocultar todas las secciones
+    document.querySelectorAll('.view-section').forEach(sec => {
+        sec.classList.remove('active');
+        sec.style.display = 'none'; // Asegura que se oculten visualmente
+    });
 
+    // Quitar la clase active de los botones del menú
+    document.querySelectorAll('.nav-item, aside button, .sidebar button').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Mostrar la sección seleccionada
     const targetSection = document.getElementById(seccionId);
-    if (targetSection) targetSection.classList.add('active');
-    if (btnElement) btnElement.classList.add('active');
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block'; // Fuerza la visualización
+    }
+
+    // Marcar el botón presionado como activo
+    if (btnElement) {
+        btnElement.classList.add('active');
+    }
 }
 
 // --- REGISTRAR NUEVO USUARIO EN LA NUBE ---
@@ -120,7 +116,6 @@ async function registrarUsuarioMaster(event) {
     const inputPass = document.getElementById("nuevoPasswordInput")?.value.trim() || "";
     const inputUser = document.getElementById("nuevoUsuarioInput")?.value.trim() || "";
 
-    // Recolectar permisos seleccionados de los checkboxes
     let permisosArr = [];
     const checkboxes = document.querySelectorAll('.card input[type="checkbox"], input[type="checkbox"]');
     checkboxes.forEach(cb => {
@@ -160,7 +155,6 @@ async function registrarUsuarioMaster(event) {
         if (response.ok) {
             alert("¡Usuario registrado en la nube con éxito!");
             
-            // Limpiar formulario
             if(document.getElementById("nuevoNombreInput")) document.getElementById("nuevoNombreInput").value = "";
             if(document.getElementById("nuevoApellidoInput")) document.getElementById("nuevoApellidoInput").value = "";
             if(document.getElementById("nuevoPasswordInput")) document.getElementById("nuevoPasswordInput").value = "";
