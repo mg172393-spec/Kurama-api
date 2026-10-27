@@ -4,7 +4,7 @@ const SUPABASE_KEY = "sb_publishable_ER63PZLEgmRBSeHj2Ekz2w_86aShIsA";
 
 // --- INICIO DE LA APLICACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Verificar si ya hay una sesión activa
+    // Verificar si ya hay una sesión activa en esta pestaña
     const sesionActiva = sessionStorage.getItem("kurama_sesion");
     if (sesionActiva) {
         try {
@@ -55,15 +55,34 @@ async function iniciarSesion() {
     }
 }
 
-// --- MOSTRAR APLICACIÓN PRINCIPAL ---
+// --- MOSTRAR APLICACIÓN PRINCIPAL (Versión Robusta Anti-Pantalla en Blanco) ---
 function mostrarAppPrincipal(usuario) {
-    const loginScreen = document.getElementById("login-screen");
-    const appLayout = document.getElementById("app-layout");
+    const loginScreen = document.getElementById("login-screen") || document.querySelector(".login-container");
+    
+    // Ocultar la pantalla de login
+    if (loginScreen) {
+        loginScreen.style.display = "none";
+    }
 
-    if (loginScreen) loginScreen.style.display = "none";
-    if (appLayout) appLayout.style.display = "flex";
+    // Buscar el contenedor principal de la aplicación por cualquier nombre común
+    const appLayout = document.getElementById("app-layout") || 
+                      document.getElementById("main-app") || 
+                      document.getElementById("app") || 
+                      document.querySelector(".app-layout") ||
+                      document.querySelector("main");
 
-    // Cargar usuarios en el panel maestro de forma segura
+    if (appLayout) {
+        appLayout.style.display = "flex";
+    } else {
+        // Fallback: mostrar cualquier contenedor oculto en el body que no sea el login
+        document.querySelectorAll("body > div").forEach(div => {
+            if (div.id !== "login-screen" && !div.classList.contains("login-container")) {
+                div.style.display = "block";
+            }
+        });
+    }
+
+    // Cargar la lista de usuarios en el panel maestro
     cargarUsuariosRegistrados();
 }
 
@@ -86,7 +105,7 @@ async function registrarUsuarioMaster(event) {
     const inputPass = document.getElementById("nuevoPasswordInput")?.value.trim() || "";
     const inputUser = document.getElementById("nuevoUsuarioInput")?.value.trim() || "";
 
-    // Recolectar permisos de los checkboxes de forma segura
+    // Recolectar permisos seleccionados de los checkboxes
     let permisosArr = [];
     const checkboxes = document.querySelectorAll('.card input[type="checkbox"]');
     checkboxes.forEach(cb => {
@@ -126,7 +145,7 @@ async function registrarUsuarioMaster(event) {
         if (response.ok) {
             alert("¡Usuario registrado en la nube con éxito!");
             
-            // Limpiar campos del formulario de forma segura
+            // Limpiar formulario
             if(document.getElementById("nuevoNombreInput")) document.getElementById("nuevoNombreInput").value = "";
             if(document.getElementById("nuevoApellidoInput")) document.getElementById("nuevoApellidoInput").value = "";
             if(document.getElementById("nuevoPasswordInput")) document.getElementById("nuevoPasswordInput").value = "";
