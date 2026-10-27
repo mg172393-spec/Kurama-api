@@ -2,13 +2,16 @@
 const SUPABASE_URL = "https://xeuulzwumaosekpjwbyq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ER63PZLEgmRBSeHj2Ekz2w_86aShIsA";
 
-// --- GESTIÓN DE VESTAS E INTERFAZ ---
+// --- GESTIÓN DE VISTAS E INTERFAZ ---
 document.addEventListener("DOMContentLoaded", () => {
     // Verificar si ya hay una sesión activa en la pestaña
     const sesionActiva = sessionStorage.getItem("kurama_sesion");
     if (sesionActiva) {
         mostrarAppPrincipal(JSON.parse(sesionActiva));
     }
+    
+    // Cargar usuarios al iniciar si estamos logueados
+    cargarUsuariosRegistrados();
 });
 
 // --- INICIAR SESIÓN DESDE LA NUBE ---
@@ -59,7 +62,7 @@ function mostrarAppPrincipal(usuario) {
     if (loginScreen) loginScreen.style.display = "none";
     if (appLayout) appLayout.style.display = "flex";
 
-    // Cargar usuarios en el panel maestro si existe la función
+    // Cargar usuarios en el panel maestro
     cargarUsuariosRegistrados();
 }
 
@@ -77,22 +80,35 @@ function cambiarSeccion(seccionId, btnElement) {
 async function registrarUsuarioMaster(event) {
     if (event) event.preventDefault();
 
-    const inputUser = document.getElementById("nuevoUsuarioInput");
-    const inputPass = document.getElementById("nuevoPasswordInput");
-    const inputNombre = document.getElementById("nuevoNombreInput");
-    const selectPermiso = document.getElementById("nuevoPermisoSelect");
+    const inputNombre = document.getElementById("nuevoNombreInput")?.value.trim() || "";
+    const inputApellido = document.getElementById("nuevoApellidoInput")?.value.trim() || "";
+    const inputPass = document.getElementById("nuevoPasswordInput")?.value.trim() || "";
+    const inputUser = document.getElementById("nuevoUsuarioInput")?.value.trim() || "";
 
-    const nuevoData = {
-        usuario: inputUser ? inputUser.value.trim() : "",
-        password: inputPass ? inputPass.value.trim() : "",
-        nombre: inputNombre ? inputNombre.value.trim() : "",
-        permiso: selectPermiso ? selectPermiso.value : "empleado"
-    };
+    // Recolectar permisos de los checkboxes
+    let permisosArr = [];
+    const checkboxes = document.querySelectorAll('.card input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            let labelText = cb.closest('label')?.textContent || cb.value || "permiso";
+            permisosArr.push(labelText.trim());
+        }
+    });
 
-    if (!nuevoData.usuario || !nuevoData.password || !nuevoData.nombre) {
-        alert("Por favor completa todos los campos del usuario.");
+    const nombreCompleto = `${inputNombre} ${inputApellido}`.trim();
+    const permisosTexto = permisosArr.length > 0 ? permisosArr.join(", ") : "acceso básico";
+
+    if (!inputUser || !inputPass || !inputNombre) {
+        alert("Por favor completa los campos obligatorios (Nombre, Contraseña y Usuario).");
         return;
     }
+
+    const nuevoData = {
+        usuario: inputUser,
+        password: inputPass,
+        nombre: nombreCompleto,
+        permiso: permisosTexto
+    };
 
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/usuarios`, {
@@ -107,24 +123,29 @@ async function registrarUsuarioMaster(event) {
         });
 
         if (response.ok) {
-            alert("¡Usuario registrado con éxito en la nube y disponible para cualquier dispositivo!");
-            if(inputUser) inputUser.value = "";
-            if(inputPass) inputPass.value = "";
-            if(inputNombre) inputNombre.value = "";
+            alert("¡Usuario registrado en la nube con éxito!");
+            
+            // Limpiar campos del formulario
+            document.getElementById("nuevoNombreInput").value = "";
+            document.getElementById("nuevoApellidoInput").value = "";
+            document.getElementById("nuevoPasswordInput").value = "";
+            document.getElementById("nuevoUsuarioInput").value = "";
+            checkboxes.forEach(cb => cb.checked = false);
+
             cargarUsuariosRegistrados();
         } else {
             const err = await response.json();
-            alert("Error al registrar: " + (err.message || "Verifica los datos"));
+            alert("Error al guardar en Supabase: " + (err.message || "Verifica los datos"));
         }
     } catch (error) {
-        console.error("Error al guardar:", error);
+        console.error("Error de red:", error);
         alert("No se pudo conectar con el servidor.");
     }
 }
 
 // --- CARGAR LISTA DE USUARIOS DESDE SUPABASE ---
 async function cargarUsuariosRegistrados() {
-    const tablaContainer = document.getElementById("tablaUsuariosBody");
+    const tablaContainer = document.querySelector("#tablaUsuariosBody") || document.querySelector("table tbody");
     if (!tablaContainer) return;
 
     try {
