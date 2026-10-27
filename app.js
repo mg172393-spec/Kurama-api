@@ -55,7 +55,7 @@ async function iniciarSesion() {
     }
 }
 
-// --- MOSTRAR APLICACIÓN PRINCIPAL (Versión Robusta Anti-Pantalla en Blanco) ---
+// --- MOSTRAR APLICACIÓN PRINCIPAL Y ACTIVAR VISTA INICIAL ---
 function mostrarAppPrincipal(usuario) {
     const loginScreen = document.getElementById("login-screen") || document.querySelector(".login-container");
     
@@ -64,7 +64,7 @@ function mostrarAppPrincipal(usuario) {
         loginScreen.style.display = "none";
     }
 
-    // Buscar el contenedor principal de la aplicación por cualquier nombre común
+    // Buscar y mostrar el contenedor principal y el layout general
     const appLayout = document.getElementById("app-layout") || 
                       document.getElementById("main-app") || 
                       document.getElementById("app") || 
@@ -74,12 +74,27 @@ function mostrarAppPrincipal(usuario) {
     if (appLayout) {
         appLayout.style.display = "flex";
     } else {
-        // Fallback: mostrar cualquier contenedor oculto en el body que no sea el login
         document.querySelectorAll("body > div").forEach(div => {
             if (div.id !== "login-screen" && !div.classList.contains("login-container")) {
                 div.style.display = "block";
             }
         });
+    }
+
+    // Asegurar que el contenedor principal del contenido o la barra lateral se desplieguen bien
+    const mainContentArea = document.querySelector(".main-content") || document.querySelector("main") || document.getElementById("main-content");
+    if (mainContentArea) {
+        mainContentArea.style.display = "block";
+    }
+
+    // --- ACTIVAR LA PRIMERA SECCIÓN DISPONIBLE POR DEFECTO ---
+    const secciones = document.querySelectorAll('.view-section');
+    if (secciones.length > 0) {
+        // Busca si hay alguna con la clase active, si no, activa la primera
+        let hayActiva = Array.from(secciones).some(sec => sec.classList.contains('active'));
+        if (!hayActiva) {
+            secciones[0].classList.add('active');
+        }
     }
 
     // Cargar la lista de usuarios en el panel maestro
@@ -107,7 +122,7 @@ async function registrarUsuarioMaster(event) {
 
     // Recolectar permisos seleccionados de los checkboxes
     let permisosArr = [];
-    const checkboxes = document.querySelectorAll('.card input[type="checkbox"]');
+    const checkboxes = document.querySelectorAll('.card input[type="checkbox"], input[type="checkbox"]');
     checkboxes.forEach(cb => {
         if (cb.checked) {
             let labelText = cb.closest('label')?.textContent || cb.value || "permiso";
